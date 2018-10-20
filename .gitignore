@@ -1,0 +1,6 @@
+*.root
+*.pyc
+*.pcm
+*.o
+*.so
+*.pdf
