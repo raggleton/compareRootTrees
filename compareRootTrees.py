@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
     # Print results
     if any(results.values()):
-        if arbs.verbose:
+        if args.verbose:
             max_len = max([len(x) for x in results.keys()])
             print("*" * max_len)
             print("Differing vars:")
