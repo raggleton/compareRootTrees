@@ -28,7 +28,7 @@ ROOT.gErrorIgnoreLevel = ROOT.kBreak  # to turn off all Error in <TCanvas::Range
 
 def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
     """
-    Make comparison plot for a branch name from 2 trees, 
+    Make comparison plot for a branch name from 2 trees,
     and return whether they are different
 
     Note that in order to get the same binning and range for both trees,
@@ -47,7 +47,7 @@ def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
         Output plot filename
     print_warning : bool, optional
         If True, print when hists have differing means and/or # entries
-    
+
     Returns
     -------
     bool
@@ -129,6 +129,11 @@ def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
     return is_diff
 
 
+def check_tobj(tobj):
+    if tobj == None or tobj.IsZombie():
+        raise IOError("Cannot access %s" % tobj.GetName())
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -146,18 +151,14 @@ if __name__ == "__main__":
     f1 = ROOT.TFile.Open(args.filename1)
     f2 = ROOT.TFile.Open(args.filename2)
 
-    if f1 == None or f1.IsZombie():
-        raise IOError("Cannot open %s" % filename1)
-    if f2 == None or f2.IsZombie():
-        raise IOError("Cannot open %s" % filename2)
+    check_tobj(f1)
+    check_tobj(f2)
 
     T1 = f1.Get(args.treeName)
     T2 = f2.Get(args.treeName)
 
-    if T1 == None or T1.IsZombie():
-        raise IOError("Cannot get tree %s from %s" % (args.treeName, filename1))
-    if T2 == None or T2.IsZombie():
-        raise IOError("Cannot get tree %s from %s" % (args.treeName, filename2))
+    check_tobj(T1)
+    check_tobj(T2)
 
     br_list1 = T1.GetListOfBranches()
     # br_list2 = T2.GetListOfBranches()
@@ -180,7 +181,6 @@ if __name__ == "__main__":
 
         leaves1 = branch1.GetListOfBranches()
         leaves2 = branch2.GetListOfBranches()
-
 
         if leaves1.GetEntries() == 0:
             # means its a leaf not a branch
