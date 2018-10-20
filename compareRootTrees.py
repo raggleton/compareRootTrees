@@ -74,6 +74,13 @@ def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
     xmin = min(xmin1, xmin2)
     xmax = max(xmax1, xmax2)
 
+    # Check if our version of ROOT has TRatioPlot
+    do_ratioplot = True
+    try:
+        ROOT.TRatioPlot
+    except AttributeError:
+        do_ratioplot = False
+
     # Now remake histograms, this time according to our binning
     # Yes this is kinda unnecessary, but have issues accessing branch data
     # directy in a generic manner
@@ -84,6 +91,16 @@ def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
     h1.SetLineColor(h1_colour)
     h1.SetLineWidth(2)
     h1.Draw("HISTE")
+    c.Update()
+    # Get stat boxes for repositioning
+    # Draw hist by itself to get it, then plot them together afterwards
+    stats1 = h1.GetListOfFunctions().FindObject("stats").Clone("stats1")
+    stats1.SetY1NDC(0.72);
+    stats1.SetX1NDC(0.825);
+    stats1.SetX2NDC(0.99);
+    stats1.SetY2NDC(0.9);
+    stats1.SetTextColor(h1_colour);
+    h1.SetStats(0)
 
     h2 = ROOT.TH1F(h2name, ";%s;N" % name, nbins, xmin, xmax)
     T2.Draw(name + ">>" + h2name)
@@ -96,12 +113,13 @@ def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
     h2.SetMarkerSize(1.5)
     h2.Draw("HISTE")
     c.Update()
-    # To get the 2nd stats box we MUST NOT draw with SAME
-    # Instead draw by itself, then plot them together afterwards
-    stats2 = h2.GetListOfFunctions().FindObject("stats").Clone("stats1")
+    stats2 = h2.GetListOfFunctions().FindObject("stats").Clone("stats2")
     stats2.SetY1NDC(0.52);
+    stats2.SetX1NDC(0.825);
+    stats2.SetX2NDC(0.99);
     stats2.SetY2NDC(0.7);
     stats2.SetTextColor(h2_colour);
+    h2.SetStats(0)
 
     if h1.GetEntries() == 0 and h2.GetEntries() == 0:
         return
@@ -120,8 +138,26 @@ def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
         basename = os.path.basename(output_name)
         output_name = output_name.replace(basename, "DIFF_"+basename)
 
-    h1.Draw("HISTE")
-    h2.Draw("HISTE SAME")
+    # Do final plotting
+    if do_ratioplot:
+        rp = ROOT.TRatioPlot(h1, h2)
+        rp.SetGridlines(array('d', [1.]), 1)
+        rp.SetRightMargin(0.18)
+        rp.SetUpTopMargin(0.1)
+        rp.Draw("grid")
+        lower_gr = rp.GetLowerRefGraph()
+        lower_gr.SetMinimum(0.8)
+        lower_gr.SetMaximum(1.2)
+        rp.GetLowerRefYaxis().SetTitle("h1 / h2")
+        c.Update()
+    else:
+        hst = ROOT.THStack("hst"+name, ";"+name+";N")
+        hst.Add(h1)
+        hst.Add(h2)
+        hst.Draw("NOSTACK HISTE")
+
+    c.cd()
+    stats1.Draw()
     stats2.Draw()
     c.Modified()
     c.SaveAs(output_name)
