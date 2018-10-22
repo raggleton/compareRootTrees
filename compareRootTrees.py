@@ -202,7 +202,7 @@ if __name__ == "__main__":
     results = OrderedDict()
 
     print("Plots produced in", args.outputDir)
-    ROOT.gSystem.mkdir(args.outputDir)
+    ROOT.gSystem.mkdir(args.outputDir, True)
     for i in range(br_list1.GetEntries()):
         branch1 = br_list1.At(i)
         branch_name = branch1.GetName()
@@ -213,7 +213,7 @@ if __name__ == "__main__":
             print("WARNING Tree2 doesn't have branch ", branch_name)
             continue
 
-        ROOT.gSystem.mkdir(os.path.join(args.outputDir, branch_name))
+        ROOT.gSystem.mkdir(os.path.join(args.outputDir, branch_name), True)
 
         leaves1 = branch1.GetListOfBranches()
         leaves2 = branch2.GetListOfBranches()
