@@ -4,3 +4,6 @@
 *.o
 *.so
 *.pdf
+*.egg-info
+*.rootmap
+__pycache__
