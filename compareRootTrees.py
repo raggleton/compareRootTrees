@@ -144,11 +144,26 @@ def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
         rp.SetGridlines(array('d', [1.]), 1)
         rp.SetRightMargin(0.18)
         rp.SetUpTopMargin(0.1)
+        rp.SetGraphDrawOpt("ALP")
         rp.Draw("grid")
         lower_gr = rp.GetLowerRefGraph()
-        lower_gr.SetMinimum(0.8)
-        lower_gr.SetMaximum(1.2)
+        # Reset y errors to 0 as not useful
+        for i in range(0, lower_gr.GetN()):
+            exl = lower_gr.GetErrorXlow(i)
+            exh = lower_gr.GetErrorXhigh(i)
+            lower_gr.SetPointError(i, exl, exh, 0, 0)
+        lower_gr.SetLineColor(ROOT.kRed)
+        ratio_x, ratio_y = get_xy(lower_gr)
+        # GetM[ax|in]imum() doesn't work here
+        default_min, default_max = 0.8, 1.2
+        if len(ratio_y) > 0:
+            lower_gr.SetMinimum(max(default_min, 0.99*min(ratio_y)))
+            lower_gr.SetMaximum(min(default_max, 1.01*max(ratio_y)))
+        else:
+            lower_gr.SetMinimum(default_min)
+            lower_gr.SetMaximum(default_max)
         rp.GetLowerRefYaxis().SetTitle("h1 / h2")
+        rp.GetLowerRefYaxis().SetNdivisions(202, False)
         c.Update()
     else:
         hst = ROOT.THStack("hst"+name, ";"+name+";N")
@@ -168,6 +183,17 @@ def do_comparison_plot(T1, T2, name, output_name, print_warning=True):
 def check_tobj(tobj):
     if tobj == None or tobj.IsZombie():
         raise IOError("Cannot access %s" % tobj.GetName())
+
+
+def get_xy(graph):
+    """
+    Return lists of x, y points from a graph, because it's such a PITA
+    """
+    # xarr = list(np.ndarray(graph.GetN(), 'd', graph.GetX()))
+    # yarr = list(np.ndarray(graph.GetN(), 'd', graph.GetY()))
+    xarr = list(array('d', graph.GetX()))
+    yarr = list(array('d', graph.GetY()))
+    return xarr, yarr
 
 
 if __name__ == "__main__":
