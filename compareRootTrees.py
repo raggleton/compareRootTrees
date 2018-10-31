@@ -16,7 +16,6 @@ import sys
 import argparse
 from collections import OrderedDict
 from array import array
-import numpy as np
 
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -189,8 +188,6 @@ def get_xy(graph):
     """
     Return lists of x, y points from a graph, because it's such a PITA
     """
-    # xarr = list(np.ndarray(graph.GetN(), 'd', graph.GetX()))
-    # yarr = list(np.ndarray(graph.GetN(), 'd', graph.GetY()))
     xarr = list(array('d', graph.GetX()))
     yarr = list(array('d', graph.GetY()))
     return xarr, yarr
